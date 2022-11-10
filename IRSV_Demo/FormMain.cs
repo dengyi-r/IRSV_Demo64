@@ -4,6 +4,12 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Windows.Forms;
+using System.Drawing.Drawing2D;
+using System.Text.RegularExpressions;
+using System.Windows.Forms.DataVisualization.Charting;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Runtime.InteropServices;
 
 using IRSV_NetPro_SDK;
 using IRSV_NetPro_SDK.Selection;
@@ -36,6 +42,12 @@ namespace IRSV_NetPro_SDK_CSharp
         int _CamChannel = 0;//相机序号
         Color _selectionColor = Color.Black;//图像中温度文字颜色
         Color _selectionColorOut = Color.Silver;  //灰色
+        double[] data_now;
+
+
+        //TestServer01的dll预测导入
+        [DllImport("TestServer01.dll", EntryPoint = "GetData", CallingConvention = CallingConvention.Cdecl)]
+        public static extern Int32 GetData(float[] inData, UInt32 inDataSize, float[] outData, UInt32 outDataSize);
 
         public FormMain()
         {
@@ -659,6 +671,406 @@ namespace IRSV_NetPro_SDK_CSharp
         }
 
         private void label3_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void statusStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+
+        }
+
+        private void statusStrip1_ItemClicked_1(object sender, ToolStripItemClickedEventArgs e)
+        {
+
+        }
+
+        private void 打开相机ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            label_Status.Text = "";
+            CheckImgProc();
+
+            this.videoView1._videoComponentType = VideoComponentType.Collect;//V1.1.11.6
+            FormConn frm = new FormConn(1);
+            if (frm.ShowDialog() == DialogResult.OK)
+            {
+                StartCollect(frm._ipaddress, Convert.ToInt32(frm._port), frm._devtype);
+            }
+        }
+
+        private void 关闭相机ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.videoView1.Stop();
+        }
+
+        private void 保存jpg文件ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if ((_rawImgData != null) && (_rawImgData.SourceData != null))//v1.1.11.2
+            {
+                DateTime timefff = DateTime.Now;
+
+                string pathfilename = this.path + "\\" + timefff.ToString("yyyyMMdd-HHmmssfff") + ".jpg";
+
+                double[] temperature = GetAllTempe(_rawImgData, ref this.videoView1.rawImage.tempeMath);
+
+                data_now = temperature;
+
+                FileStream fs = new FileStream(this.path + "\\" + timefff.ToString("yyyyMMdd-HHmmssfff") + "_write.txt", FileMode.Append);
+                StreamWriter sw = new StreamWriter(fs);
+
+
+                for (int i = 0; i < _rawImgData.imageheight; i++)
+                {
+                    for (int j = 0; j < _rawImgData.imagewidth; j++)
+                    {
+                        sw.Write(temperature[_rawImgData.imagewidth * i + j].ToString("f1"));
+                        sw.Write(" ");
+
+                        //输出data到textBox1
+                        //textBox1.AppendText(temperature[_rawImgData.imagewidth * i + j].ToString("f1"));
+                        //sw.Write(" ");
+                    }
+                    sw.Write("\t");
+
+                }
+
+                sw.Close();
+                fs.Close();
+
+                textBox1.Text = " ";
+                byte[] buffer = File.ReadAllBytes(@fs.Name);
+                //将字节数组中的每一个元素都要按照我们指定的编码格式解码成字符串
+                //UTF-8  GB2312 GBK ASCII  Unicode//Default国内默认编码GBK
+                string str = Encoding.Default.GetString(buffer);
+
+                //textBox1.AppendText(str);
+
+
+                //在文本框中绘制直方图
+                double min_data = double.MaxValue;//最小值
+                double max_data = double.MinValue;//最大值
+                for (int i = 0; i < temperature.Length; i++)
+                {
+                    if (temperature[i] > max_data)
+                    {
+                        max_data = temperature[i];//求最大值
+                    }
+                    if (temperature[i] < min_data)//求最小值，每次都是和（比较过的所有）在做比较，而不是两两作比较
+                    {
+                        min_data = temperature[i];
+                    }
+                }
+                double size_data = (max_data - min_data) / 5;
+                double size_1 = 0;
+                double size_2 = 0;
+                double size_3 = 0;
+                double size_4 = 0;
+                double size_5 = 0;
+                for (int i = 0; i < temperature.Length; i++)
+                {
+                    if (min_data + size_data >= temperature[i])
+                    {
+                        size_1 = size_1 + 1;
+                    }
+
+                    else if (min_data + 2*size_data >= temperature[i])
+                    {
+                        size_2 = size_2 + 1;
+                    }
+                    else if (min_data + 3 * size_data >= temperature[i])
+                    {
+                        size_3 = size_3 + 1;
+                    }
+
+
+                    else if (min_data + 4 * size_data >= temperature[i])
+                    {
+                        size_4 = size_4 + 1;
+                    }
+                    else
+                    {
+                        size_5 = size_5 + 1;
+                    }
+                }
+
+                //chart1.Series[0].Points.AddXY(1, size_1);
+                //chart1.Series[0].Points.AddXY(2, size_2);
+                //chart1.Series[0].Points.AddXY(3, size_3);
+                //chart1.Series[0].Points.AddXY(4, size_4);
+                //chart1.Series[0].Points.AddXY(5, size_5);
+                chart1.Series[0].Points.Clear();  //清空chart1元素
+
+                double[] number_y = new double[5] { size_1, size_2 , size_3 , size_4 , size_5 };
+                double[] number_x = new double[5] { min_data, min_data+size_data, min_data + 2*size_data, min_data + 3*size_data, max_data};
+                int number_y_length = number_y.Length;
+                for (int i = 0; i < number_y_length ; i++)
+                {
+                    chart1.Series[0].Points.Add(new DataPoint(Convert.ToInt32(number_x[i]), number_y[i]));//添加数据
+                }
+
+                bool ok = this.videoView1.SaveToJpgFile(_rawImgData, pathfilename, timefff);//sdk v.1.12.5
+
+            }
+        }
+
+        private void 保存raw文件ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string pathfilename = this.path + "\\" + DateTime.Now.ToString("yyyyMMdd-HHmmssfff") + ".raw";
+            bool ren = this.videoView1.SaveRaw(pathfilename);
+        }
+
+        private void 预测数据ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+
+            float[] data = new float[512 * 640];
+
+            for (int i = 0; i < 512 * 640; i++)
+            {
+                data[i] = (float)data_now[i];
+            }
+           
+            float[] outData = new float[512 * 640];
+            //for (int i = 0; i < data.Length; ++i)
+            //{
+            //    data[i] = i;
+            //}
+
+
+
+            GetData(data, (uint)data.Length, outData, (uint)outData.Length);
+
+            for (int i = 0; i < 100; ++i)
+            {
+                Console.Write($"{outData[i]},");
+            }
+
+            //在文本框中绘制直方图
+            double min_data = double.MaxValue;//最小值
+            double max_data = double.MinValue;//最大值
+            for (int i = 0; i < outData.Length; i++)
+            {
+                if (outData[i] > max_data)
+                {
+                    max_data = outData[i];//求最大值
+                }
+                if (outData[i] < min_data)//求最小值，每次都是和（比较过的所有）在做比较，而不是两两作比较
+                {
+                    min_data = outData[i];
+                }
+            }
+            double size_data = (max_data - min_data) / 5;
+            double size_1 = 0;
+            double size_2 = 0;
+            double size_3 = 0;
+            double size_4 = 0;
+            double size_5 = 0;
+            for (int i = 0; i < outData.Length; i++)
+            {
+                if (min_data + size_data >= outData[i])
+                {
+                    size_1 = size_1 + 1;
+                }
+
+                else if (min_data + 2 * size_data >= outData[i])
+                {
+                    size_2 = size_2 + 1;
+                }
+                else if (min_data + 3 * size_data >= outData[i])
+                {
+                    size_3 = size_3 + 1;
+                }
+
+
+                else if (min_data + 4 * size_data >= outData[i])
+                {
+                    size_4 = size_4 + 1;
+                }
+                else
+                {
+                    size_5 = size_5 + 1;
+                }
+            }
+
+            //chart1.Series[0].Points.AddXY(1, size_1);
+            //chart1.Series[0].Points.AddXY(2, size_2);
+            //chart1.Series[0].Points.AddXY(3, size_3);
+            //chart1.Series[0].Points.AddXY(4, size_4);
+            //chart1.Series[0].Points.AddXY(5, size_5);
+            chart1.Series[0].Points.Clear();  //清空chart1元素
+
+            double[] number_y = new double[5] { size_1, size_2, size_3, size_4, size_5 };
+            double[] number_x = new double[5] { min_data, min_data + size_data, min_data + 2 * size_data, min_data + 3 * size_data, max_data };
+            int number_y_length = number_y.Length;
+            for (int i = 0; i < number_y_length; i++)
+            {
+                chart1.Series[0].Points.Add(new DataPoint(Convert.ToInt32(number_x[i]), number_y[i]));//添加数据
+            }
+
+            label_now_maxData.Text = string.Format("{0:F3}", max_data);
+            label_min_dataTem.Text = string.Format("{0:F3}", min_data);
+
+
+            DateTime timefff = DateTime.Now;
+
+            FileStream fs = new FileStream(this.path + "\\" + timefff.ToString("yyyyMMdd-HHmmssfff") + "_change_write.txt", FileMode.Append);
+            StreamWriter sw = new StreamWriter(fs);
+
+
+            for (int i = 0; i < _rawImgData.imageheight; i++)
+            {
+                for (int j = 0; j < _rawImgData.imagewidth; j++)
+                {
+                    sw.Write(outData[_rawImgData.imagewidth * i + j].ToString("f1"));
+                    sw.Write(" ");
+
+                    //输出data到textBox1
+                    //textBox1.AppendText(temperature[_rawImgData.imagewidth * i + j].ToString("f1"));
+                    //sw.Write(" ");
+                }
+                sw.Write("\t");
+
+            }
+
+            sw.Close();
+            fs.Close();
+
+            textBox1.Text = " ";
+            byte[] buffer = File.ReadAllBytes(@fs.Name);
+            //将字节数组中的每一个元素都要按照我们指定的编码格式解码成字符串
+            //UTF-8  GB2312 GBK ASCII  Unicode//Default国内默认编码GBK
+            string str = Encoding.Default.GetString(buffer);
+
+            textBox1.AppendText(str);
+        }
+
+        private void label_tem2_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void setcamToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if ((_rawImgData != null) && (_rawImgData.SourceData != null))
+            {
+
+                Form form = null;
+                if (_rawImgData.displaySource == 1)//进口机芯
+                {
+                    FormCamSetTF frm = new FormCamSetTF();
+                    frm._fatherForm = 0;
+                    frm._tempeMath = this.videoView1.rawImage.tempeMath;
+                    form = frm;
+                }
+                else if (_rawImgData.displaySource == 3 || _rawImgData.displaySource == 6)//国产机芯
+                {
+                    FormCamSetTR frm = new FormCamSetTR();
+                    frm._fatherForm = 0;
+                    frm._tempeMath = this.videoView1.rawImage.tempeMath;
+                    form = frm;
+                }
+                else if (_rawImgData.displaySource == 8)//TW高温机芯
+                {
+                    FormCamSetTW frm = new FormCamSetTW();
+                    frm._fatherForm = 0;
+                    frm._tempeMath = this.videoView1.rawImage.tempeMath;
+                    form = frm;
+                }
+
+                if (form != null)
+                {
+                    form.ShowDialog(this);
+                    form.Dispose();
+                    form = null;
+                }
+            }
+        }
+
+        private void 打开raw文件ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (!IsCollect())
+            {
+                this.videoView1._videoComponentType = VideoComponentType.Playback;//V1.1.11.6
+                label_Status.Text = "";
+
+                OpenFileDialog fdlg = new OpenFileDialog();
+                fdlg.Filter = "原始热像文件(*.raw)|*.raw";
+                fdlg.InitialDirectory = path;
+                if (fdlg.ShowDialog() == DialogResult.OK)
+                {
+                    string errormsg;
+                    string file = fdlg.FileName;
+                    //回放.raw前，可先在FormMain()中或此处设置SysSdk.RawFileTempFMode的值(即指定机芯类别)，sdk根据raw文件尺寸自动判断机芯类别；
+                    //    当两种机芯的raw尺寸相同时，由SysSdk.RawFileTempFMode的值最终决定机芯的类别！
+                    //若文件尺寸对应唯一的机芯类别，则可不设置SysSdk.RawFileTempFMode的值
+
+                    //方法一:
+                    if (this.videoView1.OpenViewFile(file, out errormsg))
+                    {
+                        _rawImgData = this.videoView1.rawImage.GetImgData();
+                    }
+
+                    //方法二： 如果文件后缀名不是.raw，使用此方法
+                    //ImageStore imageStore;
+                    //if (ImageRead.ReadRaw(file, out imageStore))
+                    //{
+                    //    RawImgData rawImgData = new RawImgData()
+                    //    {
+                    //        displaySource = imageStore.displaysource,
+                    //        SourceData = imageStore.SourceData,
+                    //        TemData = imageStore.temData,
+                    //        ImgData = imageStore.imgData,
+                    //        videoComponentType = VideoComponentType.Playback,
+                    //        imagewidth = imageStore.image_width,
+                    //        imageheight = imageStore.image_height,
+                    //        Complex = (imageStore.displaysource != 0 && imageStore.displaysource != 3) ? 0 : 1,
+                    //        frameindex = 0,
+                    //        revtime = imageStore.time != "" ? Convert.ToDateTime(imageStore.time) : Convert.ToDateTime(null),
+                    //        Allname = file,
+                    //        imgFileType = IRSV_NetPro_SDK.Common.ImgFileType.Raw,
+                    //    };
+                    //    _rawImgData = rawImgData;
+                    //}
+                }
+            }
+        }
+
+        private void 保存raw文件ToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            if (!IsCollect())
+            {
+                OpenFileDialog fdlg = new OpenFileDialog();
+                fdlg.Filter = "热像图片(*.jpg)|*.jpg";
+                fdlg.InitialDirectory = path;
+                if (fdlg.ShowDialog() == DialogResult.OK)
+                {
+                    string errormsg;
+                    string file = fdlg.FileName;
+                    //.jpg文件内部，保存有机芯的类别，打开时会自动进行判断
+                    if (this.videoView1.OpenViewFile(file, out errormsg))
+                    {
+                        _rawImgData = this.videoView1.rawImage.GetImgData();
+                    }
+                }
+            }
+        }
+
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void chart1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label4_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label_minData_Click(object sender, EventArgs e)
         {
 
         }

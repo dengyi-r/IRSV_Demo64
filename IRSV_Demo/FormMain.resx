@@ -120,7 +120,36 @@
   <metadata name="timer1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>17, 17</value>
   </metadata>
-  <metadata name="$this.TrayHeight" type="System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>25</value>
+  <metadata name="系统工具栏.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>266, 0</value>
   </metadata>
+  <metadata name="statusStrip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>122, 17</value>
+  </metadata>
+  <metadata name="menuStrip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>266, 17</value>
+  </metadata>
+  <metadata name="$this.TrayHeight" type="System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>44</value>
+  </metadata>
+  <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="$this.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        AAABAAEAEBAAAAEAGABoAwAAFgAAACgAAAAQAAAAIAAAAAEAGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        AAAAAAAAAAAAAAAAAABcXGFfX2BnZ2lpaWplZWdeXmBdXV9cXGEAAAAAAAAAAAAAAAAAAAAAAABUVFRp
+        aWujo6TDwsOHh4jm5ubm5ubGxsaHh4dhYWNcXF9UVFQAAAAAAAAAAABUVFSGhobm5ubt7e5paWpqamz+
+        /v7+/v7+/v76+vq6ubpqaWtdXV5UVFQAAAAAAACHh4ny8fH+/v7ExMVdXV95eXr+/v7+/v7e3t6Pj5Gc
+        nJ2trKxnZmhcXF8AAABnZ2eKiozw8PD+/v7j4+NeXmB6env+/v7t7e1oaGldXV9dXV9wcHGNjY1dXV9c
+        XGGmpqd9fX51dXbi4uP+/v6ZmZtvb3H+/v6WlphdXV9+fn/IyMn5+fnZ2dlra2xcXF/JyMmbm51dXV9i
+        YmSurq/q6uppaWvPz89oaGnAwMH9/f3+/v7+/v75+fl7entcXF7S0tP29vevr7CQkJGFhYeDg4SQkJKN
+        jY7d3d7z8/Pv7+/5+fn+/v7+/v6OjY5cXF7T0tP+/v7+/v7+/v7+/v7MzM2rq6ycnJ14eHpdXV9dXV9h
+        YWOvr7D+/v6Ojo5cXF7Jycn+/v78/PzQ0NGEhIZ+foDs7Oxvb3D39/fR0dJ/f4FdXV9eXmDo6Ol7e3tc
+        XF6WlpiWlphtbW5dXV9nZ2jp6er+/v5jY2Wpqar+/v79/f26urtiYmS5ublra2xcXF5nZ2eqqqt0dHZ1
+        dXbW1tb+/v7+/v5ubnBhYWPu7u/+/v7+/v7U1NWSkZFdXV9cXFwAAACKiozz8/P+/v7+/v7+/v7+/v5u
+        bm9dXV/Q0ND+/v7+/v7CwsJnZ2lcXF4AAAAAAABfX1+JiIno6Oj+/v7+/v78/PxhYWNra2zy8vL7+/u9
+        vLxramxdXV5fX18AAAAAAAAAAABfX19sbG2np6fc3Nzb29uLi4zT0tPJyMmKiYpiYmRcXF5fX18AAAAA
+        AAAAAAAAAAAAAAAAAABcXFxfX2FpaWpramxnZ2heXmFcXF5cXFwAAAAAAAAAAAAAAADwDwAAwAMAAIAB
+        AACAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAQAAgAEAAMADAADwDwAA
+</value>
+  </data>
 </root>
